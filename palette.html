@@ -49,10 +49,16 @@
     <p id="status">ログイン状態を確認中...</p>
 
     <div id="palette-form" style="display: none;">
-      <input type="text" id="palette-name" placeholder="パレット名" /><br />
-      <input type="color" id="color1" value="#ff0000" />
-      <input type="color" id="color2" value="#00ff00" />
-      <input type="color" id="color3" value="#0000ff" /><br />
+      <input type="text" id="palette-name" placeholder="パレット名（必須）" /><br />
+      <input type="text" id="palette-tags" list="tag-suggestions" placeholder="タグ（カンマ区切り・必須）" />
+      <datalist id="tag-suggestions"></datalist><br />
+      <div id="color-container">
+        <input type="color" value="#ff0000" />
+        <input type="color" value="#00ff00" />
+        <input type="color" value="#0000ff" />
+      </div>
+      <button onclick="addColor()">＋色を追加</button>
+      <button onclick="removeColor()">−色を削除</button><br />
       <button onclick="savePalette()">登録する</button>
     </div>
   </div>
@@ -80,32 +86,77 @@
         currentUser = user;
         document.getElementById("status").textContent = `ログイン中：${user.email}`;
         document.getElementById("palette-form").style.display = "block";
+        loadTagSuggestions();
       } else {
         document.getElementById("status").textContent = "ログインしていません。パレット登録はログインが必要です。";
         document.getElementById("palette-form").style.display = "none";
       }
     });
 
+    function addColor() {
+      const container = document.getElementById("color-container");
+      const input = document.createElement("input");
+      input.type = "color";
+      input.value = "#ffffff";
+      container.appendChild(input);
+    }
+
+    function removeColor() {
+      const container = document.getElementById("color-container");
+      if (container.children.length > 1) {
+        container.removeChild(container.lastChild);
+      }
+    }
+
     function savePalette() {
-      const name = document.getElementById("palette-name").value;
-      const color1 = document.getElementById("color1").value;
-      const color2 = document.getElementById("color2").value;
-      const color3 = document.getElementById("color3").value;
+      const name = document.getElementById("palette-name").value.trim();
+      const tagsRaw = document.getElementById("palette-tags").value.trim();
+      const colorInputs = document.querySelectorAll("#color-container input[type='color']");
+      const colors = Array.from(colorInputs).map(input => input.value);
 
       if (!name) {
-        alert("パレット名を入力してください");
+        alert("パレット名は必須です");
         return;
       }
 
-      db.collection("users").doc(currentUser.uid).collection("palettes").add({
+      if (!tagsRaw) {
+        alert("タグは必須です（カンマ区切り）");
+        return;
+      }
+
+      const tags = tagsRaw.split(",").map(tag => tag.trim()).filter(tag => tag);
+
+      db.collection("public_palettes").add({
+        uid: currentUser.uid,
         name: name,
-        colors: [color1, color2, color3],
+        tags: tags,
+        colors: colors,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
         alert("パレットを登録しました！");
         document.getElementById("palette-name").value = "";
+        document.getElementById("palette-tags").value = "";
       }).catch(error => {
         alert("登録に失敗しました: " + error.message);
+      });
+    }
+
+    function loadTagSuggestions() {
+      const tagSet = new Set();
+      db.collection("public_palettes").get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (Array.isArray(data.tags)) {
+            data.tags.forEach(tag => tagSet.add(tag.trim()));
+          }
+        });
+        const datalist = document.getElementById("tag-suggestions");
+        datalist.innerHTML = "";
+        Array.from(tagSet).sort().forEach(tag => {
+          const option = document.createElement("option");
+          option.value = tag;
+          datalist.appendChild(option);
+        });
       });
     }
   </script>

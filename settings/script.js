@@ -12,6 +12,12 @@ auth.onAuthStateChanged(user => {
   if (user) {
     document.getElementById("status").textContent = `ログイン中：${user.email}`;
     document.getElementById("settings-form").style.display = "block";
+
+    db.collection("users").doc(user.uid).get().then(doc => {
+      const data = doc.data();
+      document.getElementById("new-username").value = data?.username || "";
+      document.getElementById("new-email").value = data?.email || user.email;
+    });
   } else {
     document.getElementById("status").textContent = "ログインしていません。";
     document.getElementById("settings-form").style.display = "none";

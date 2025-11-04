@@ -20,15 +20,20 @@
       max-width: 400px;
       box-shadow: 0 0 20px rgba(0,0,0,0.3);
     }
-    button {
-      background-color: #ffffff;
-      color: #2a5298;
-      border: none;
-      padding: 10px 20px;
-      font-size: 16px;
+    input, button {
+      margin: 10px;
+      padding: 10px;
       border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    input {
+      width: 80%;
+    }
+    button {
+      background-color: #fff;
+      color: #2a5298;
       cursor: pointer;
-      margin-top: 20px;
     }
     button:hover {
       background-color: #f0f0f0;
@@ -37,58 +42,64 @@
 </head>
 <body>
   <div class="card" id="login-card">
-    <h1>Welcome to Arkive</h1>
-    <p>ログインして世界観をひらこう</p>
-    <button onclick="login()">Googleでログイン</button>
+    <h1>Arkive Portal</h1>
+    <input type="email" id="email" placeholder="メールアドレス" /><br />
+    <input type="password" id="password" placeholder="パスワード" /><br />
+    <button onclick="login()">ログイン</button>
+    <button onclick="signup()">新規登録</button>
   </div>
 
   <div class="card" id="user-card" style="display: none;">
-    <h2 id="user-name"></h2>
+    <h2 id="user-name">ログイン中</h2>
     <p id="user-email"></p>
     <button onclick="logout()">ログアウト</button>
   </div>
 
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Firebase設定（あなたのプロジェクトに合わせて書き換えてください）
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID"
-    };
+   const firebaseConfig = {
+    apiKey: "AIzaSyA_TQT0dB04nbVhGsVVvQsxlIkQuy2hJIQ",
+    authDomain: "arkive-505f0.firebaseapp.com",
+    projectId: "arkive-505f0",
+  };
 
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // ログイン処理
     function login() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).then(result => {
-        const user = result.user;
-        db.collection("users").doc(user.uid).set({
-          name: user.displayName,
-          email: user.email,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-      });
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      auth.signInWithEmailAndPassword(email, password)
+        .catch(error => alert("ログイン失敗: " + error.message));
     }
 
-    // ログアウト処理
+    function signup() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(result => {
+          const user = result.user;
+          db.collection("users").doc(user.uid).set({
+            email: user.email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        })
+        .catch(error => alert("登録失敗: " + error.message));
+    }
+
     function logout() {
       auth.signOut();
     }
 
-    // ログイン状態の監視
     auth.onAuthStateChanged(user => {
       if (user) {
         document.getElementById("login-card").style.display = "none";
         document.getElementById("user-card").style.display = "block";
-        document.getElementById("user-name").textContent = `ようこそ、${user.displayName} さん`;
         document.getElementById("user-email").textContent = user.email;
       } else {
         document.getElementById("login-card").style.display = "block";

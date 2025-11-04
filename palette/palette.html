@@ -11,36 +11,58 @@
     <h1>🎨 カラーパレット</h1>
     <p id="status">ログイン状態を確認中...</p>
 
-    <div id="palette-form" style="display: none;">
-      <input type="text" id="palette-name" placeholder="パレット名（必須）" /><br />
-      <input type="text" id="palette-tags" list="tag-suggestions" placeholder="タグ（カンマ区切り・必須）" />
-      <datalist id="tag-suggestions"></datalist><br />
-      <div id="color-container">
-        <input type="color" value="#ff0000" />
-        <input type="color" value="#00ff00" />
-        <input type="color" value="#0000ff" />
-      </div>
-      <button onclick="addColor()">＋色を追加</button>
-      <button onclick="removeColor()">−色を削除</button><br />
-      <button onclick="savePalette()">登録する</button>
+    <div class="tabs">
+      <button class="tab-button active" data-tab="form">📝 登録</button>
+      <button class="tab-button" data-tab="search">🔍 検索</button>
+      <button class="tab-button" data-tab="mine">🧑‍🎨 あなたのパレット</button>
+      <button class="tab-button" data-tab="others">🌍 みんなのパレット</button>
     </div>
-  </div>
 
-  <div class="card">
-    <h2>🔍 パレットを探す</h2>
-    <input type="text" id="search-name" placeholder="パレット名で検索" />
-    <input type="text" id="search-tag" placeholder="タグで検索" />
-    <button onclick="loadPalettes()">検索</button>
-  </div>
+    <div class="tab-content active" id="form">
+      <div id="palette-form" style="display: none;">
+        <input type="text" id="palette-name" placeholder="パレット名（必須）" /><br />
+        <input type="text" id="palette-tags" list="tag-suggestions" placeholder="タグ（カンマ区切り・必須）" />
+        <datalist id="tag-suggestions"></datalist><br />
+        <div id="color-container">
+          <input type="color" value="#ff0000" />
+          <input type="color" value="#00ff00" />
+          <input type="color" value="#0000ff" />
+        </div>
+        <button onclick="addColor()">＋色を追加</button>
+        <button onclick="removeColor()">−色を削除</button><br />
+        <button onclick="savePalette()">登録する</button>
+      </div>
+    </div>
 
-  <div class="card">
-    <h2>🧑‍🎨 あなたのパレット</h2>
-    <div id="my-palettes">読み込み中...</div>
-  </div>
+    <div class="tab-content" id="search">
+      <div class="form-group">
+        <label for="search-name">パレット名</label>
+        <input type="text" id="search-name" placeholder="例：夕暮れの風" />
+      </div>
+      <div class="form-group">
+        <label for="search-tag">タグ</label>
+        <input type="text" id="search-tag" placeholder="例：暖色,幻想" />
+      </div>
+      <div class="form-group">
+        <label for="search-author">作者名</label>
+        <input type="text" id="search-author" placeholder="例：haru" />
+      </div>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" id="filter-favorites" onchange="loadPalettes()" />
+          ❤️ お気に入りのみ表示
+        </label>
+      </div>
+      <button onclick="loadPalettes()">検索する</button>
+    </div>
 
-  <div class="card">
-    <h2>🌍 みんなのパレット</h2>
-    <div id="other-palettes">読み込み中...</div>
+    <div class="tab-content" id="mine">
+      <div id="my-palettes">読み込み中...</div>
+    </div>
+
+    <div class="tab-content" id="others">
+      <div id="other-palettes">読み込み中...</div>
+    </div>
   </div>
 
   <!-- Firebase SDK -->
@@ -48,6 +70,21 @@
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
 
+  <!-- 外部JS -->
   <script src="palette.js"></script>
+  <script>
+    // タブ切り替え処理
+    document.querySelectorAll(".tab-button").forEach(button => {
+      button.addEventListener("click", () => {
+        const tab = button.getAttribute("data-tab");
+        document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+        button.classList.add("active");
+        document.querySelectorAll(".tab-content").forEach(content => {
+          content.classList.remove("active");
+          if (content.id === tab) content.classList.add("active");
+        });
+      });
+    });
+  </script>
 </body>
 </html>

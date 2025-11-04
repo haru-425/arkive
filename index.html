@@ -4,52 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Arkive Portal</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1e3c72, #2a5298);
-      color: white;
-      text-align: center;
-      padding: 50px;
-    }
-    .card {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 30px;
-      margin: 20px auto;
-      max-width: 500px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-    }
-    input, button, a {
-      margin: 10px;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-      text-decoration: none;
-    }
-    input {
-      width: 80%;
-    }
-    button {
-      background-color: #fff;
-      color: #2a5298;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #f0f0f0;
-    }
-    a {
-      display: block;
-      color: #ffffff;
-      background-color: rgba(255,255,255,0.2);
-      margin: 10px auto;
-      width: 80%;
-    }
-    a:hover {
-      background-color: rgba(255,255,255,0.3);
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="card" id="title-card">
@@ -66,7 +21,7 @@
   </div>
 
   <div class="card" id="login-card">
-    <input type="text" id="login-username" placeholder="ユーザー名" /><br />
+    <input type="text" id="login-username" placeholder="ユーザー名またはメールアドレス" /><br />
     <input type="password" id="login-password" placeholder="パスワード" /><br />
     <button onclick="login()">ログイン</button>
     <p><a href="#" onclick="showSignup()">新規登録はこちら</a></p>
@@ -97,135 +52,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyA_TQT0dB04nbVhGsVVvQsxlIkQuy2hJIQ",
-      authDomain: "arkive-505f0.firebaseapp.com",
-      projectId: "arkive-505f0"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    function showSignup() {
-      document.getElementById("login-card").style.display = "none";
-      document.getElementById("signup-card").style.display = "block";
-    }
-
-    function showLogin() {
-      document.getElementById("signup-card").style.display = "none";
-      document.getElementById("login-card").style.display = "block";
-    }
-
-    function signup() {
-      const username = document.getElementById("signup-username").value.trim();
-      const email = document.getElementById("signup-email").value.trim();
-      const password = document.getElementById("signup-password").value;
-
-      if (!username || !email || !password) {
-        alert("すべての項目を入力してください");
-        return;
-      }
-
-      db.collection("users").where("username", "==", username).get()
-        .then(snapshot => {
-          if (!snapshot.empty) {
-            throw new Error("このユーザー名はすでに使われています");
-          }
-          return auth.createUserWithEmailAndPassword(email, password);
-        })
-        .then(result => {
-          const user = result.user;
-          return db.collection("users").doc(user.uid).set({
-            username: username,
-            email: email,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        })
-        .then(() => {
-          alert("登録が完了しました！");
-          showLogin();
-        })
-        .catch(error => alert("登録失敗: " + error.message));
-    }
-
-    function login() {
-      const username = document.getElementById("login-username").value.trim();
-      const password = document.getElementById("login-password").value;
-
-      if (!username || !password) {
-        alert("ユーザー名とパスワードを入力してください");
-        return;
-      }
-
-      db.collection("users").where("username", "==", username).limit(1).get()
-        .then(snapshot => {
-          if (snapshot.empty) {
-            throw new Error("ユーザー名が見つかりません");
-          }
-          const userData = snapshot.docs[0].data();
-          return auth.signInWithEmailAndPassword(userData.email, password);
-        })
-        .catch(error => alert("ログイン失敗: " + error.message));
-    }
-
-    function logout() {
-      auth.signOut();
-    }
-
-    function registerUsername() {
-      const username = document.getElementById("new-username").value.trim();
-      if (!username) {
-        alert("ユーザー名を入力してください");
-        return;
-      }
-
-      db.collection("users").where("username", "==", username).get()
-        .then(snapshot => {
-          if (!snapshot.empty) {
-            throw new Error("このユーザー名はすでに使われています");
-          }
-          const uid = auth.currentUser.uid;
-          return db.collection("users").doc(uid).update({ username: username });
-        })
-        .then(() => {
-          alert("ユーザー名を登録しました！");
-          document.getElementById("username-card").style.display = "none";
-          document.getElementById("user-name").textContent = `ようこそ、${username} さん`;
-        })
-        .catch(error => {
-          alert("登録に失敗しました: " + error.message);
-        });
-    }
-
-    auth.onAuthStateChanged(user => {
-  if (user) {
-    document.getElementById("login-card").style.display = "none";
-    document.getElementById("signup-card").style.display = "none";
-    document.getElementById("user-card").style.display = "block";
-    document.getElementById("extra-links").style.display = "block";
-
-    db.collection("users").doc(user.uid).get().then(doc => {
-      const data = doc.data();
-      if (!data || !data.username) {
-        document.getElementById("username-card").style.display = "block";
-        document.getElementById("user-name").textContent = "ユーザー名未登録";
-        document.getElementById("user-email").textContent = user.email;
-      } else {
-        document.getElementById("username-card").style.display = "none";
-        document.getElementById("user-name").textContent = `ようこそ、${data.username} さん`;
-        document.getElementById("user-email").textContent = data.email;
-      }
-    });
-  } else {
-    document.getElementById("login-card").style.display = "block";
-    document.getElementById("signup-card").style.display = "none";
-    document.getElementById("user-card").style.display = "none";
-    document.getElementById("extra-links").style.display = "none";
-    document.getElementById("username-card").style.display = "none";
-  }
-});
-</script>
+  <!-- 外部JS -->
+  <script src="script.js"></script>
 </body>
 </html>

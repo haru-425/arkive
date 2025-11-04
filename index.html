@@ -17,15 +17,16 @@
       border-radius: 12px;
       padding: 30px;
       margin: 20px auto;
-      max-width: 400px;
+      max-width: 500px;
       box-shadow: 0 0 20px rgba(0,0,0,0.3);
     }
-    input, button {
+    input, button, a {
       margin: 10px;
       padding: 10px;
       border-radius: 8px;
       border: none;
       font-size: 16px;
+      text-decoration: none;
     }
     input {
       width: 80%;
@@ -38,11 +39,32 @@
     button:hover {
       background-color: #f0f0f0;
     }
+    a {
+      display: block;
+      color: #ffffff;
+      background-color: rgba(255,255,255,0.2);
+      margin: 10px auto;
+      width: 80%;
+    }
+    a:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
   </style>
 </head>
 <body>
-  <div class="card" id="login-card">
+  <div class="card" id="title-card">
     <h1>Arkive Portal</h1>
+    <p>世界観の入り口へようこそ</p>
+    <a href="gallery.html">📁 ギャラリー</a>
+    <a href="docs.html">📚 ドキュメント</a>
+    <a href="about.html">🌐 このサイトについて</a>
+    <div id="extra-links" style="display: none;">
+      <a href="dashboard.html">🧭 ダッシュボード（ログイン限定）</a>
+      <a href="settings.html">⚙️ ユーザー設定</a>
+    </div>
+  </div>
+
+  <div class="card" id="login-card">
     <input type="email" id="email" placeholder="メールアドレス" /><br />
     <input type="password" id="password" placeholder="パスワード" /><br />
     <button onclick="login()">ログイン</button>
@@ -61,11 +83,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
 
   <script>
-   const firebaseConfig = {
-    apiKey: "AIzaSyA_TQT0dB04nbVhGsVVvQsxlIkQuy2hJIQ",
-    authDomain: "arkive-505f0.firebaseapp.com",
-    projectId: "arkive-505f0",
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyA_TQT0dB04nbVhGsVVvQsxlIkQuy2hJIQ",
+      authDomain: "arkive-505f0.firebaseapp.com",
+      projectId: "arkive-505f0"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -101,9 +123,11 @@
         document.getElementById("login-card").style.display = "none";
         document.getElementById("user-card").style.display = "block";
         document.getElementById("user-email").textContent = user.email;
+        document.getElementById("extra-links").style.display = "block";
       } else {
         document.getElementById("login-card").style.display = "block";
         document.getElementById("user-card").style.display = "none";
+        document.getElementById("extra-links").style.display = "none";
       }
     });
   </script>

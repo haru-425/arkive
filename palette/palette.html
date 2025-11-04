@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>カラーパレット | Arkive</title>
+  <link rel="stylesheet" href="palette.css" />
+</head>
+<body>
+  <div class="card">
+    <h1>🎨 カラーパレット</h1>
+    <p id="status">ログイン状態を確認中...</p>
+
+    <div id="palette-form" style="display: none;">
+      <input type="text" id="palette-name" placeholder="パレット名（必須）" /><br />
+      <input type="text" id="palette-tags" list="tag-suggestions" placeholder="タグ（カンマ区切り・必須）" />
+      <datalist id="tag-suggestions"></datalist><br />
+      <div id="color-container">
+        <input type="color" value="#ff0000" />
+        <input type="color" value="#00ff00" />
+        <input type="color" value="#0000ff" />
+      </div>
+      <button onclick="addColor()">＋色を追加</button>
+      <button onclick="removeColor()">−色を削除</button><br />
+      <button onclick="savePalette()">登録する</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔍 パレットを探す</h2>
+    <input type="text" id="search-name" placeholder="パレット名で検索" />
+    <input type="text" id="search-tag" placeholder="タグで検索" />
+    <button onclick="loadPalettes()">検索</button>
+  </div>
+
+  <div class="card">
+    <h2>🧑‍🎨 あなたのパレット</h2>
+    <div id="my-palettes">読み込み中...</div>
+  </div>
+
+  <div class="card">
+    <h2>🌍 みんなのパレット</h2>
+    <div id="other-palettes">読み込み中...</div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+
+  <script src="palette.js"></script>
+</body>
+</html>

@@ -1,190 +1,100 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>シェーダー学習リソース</title>
-<style>
-body {
-    font-family: "Noto Sans JP", sans-serif;
-    background: #1e1e2f;
-    color: #fff;
-    margin: 0;
-    padding: 2rem;
-}
-
-h1 {
-    text-align: center;
-    margin-bottom: 2rem;
-    text-shadow: 2px 2px 5px #000;
-}
-
-h2 {
-    width: 100%;
-    margin: 2rem 0 1rem 0;
-    border-bottom: 2px solid #555;
-    padding-bottom: 0.5rem;
-    font-size: 1.5rem;
-}
-
-.card-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.5rem;
-}
-
-.card-link {
-    text-decoration: none;
-}
-
-.card {
-    border-radius: 12px;
-    padding: 1rem;
-    height: 220px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    transition: transform 0.3s, box-shadow 0.3s;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    justify-content: space-between;
-    text-align: center;
-    background-color: rgba(255,255,255,0.05);
-}
-
-.card:hover {
-    transform: translateY(-8px) scale(1.05);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.7);
-}
-
-.thumbnail {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-bottom: 0.8rem;
-    flex-shrink: 0;
-}
-
-.title {
-    font-weight: bold;
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-    text-align: center;
-}
-
-.description {
-    font-size: 0.9rem;
-    color: #eee;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-}
-
-/* カテゴリ色 */
-.learning { border-top: 4px solid #1f8eed; }
-.experiment { border-top: 4px solid #2ecc71; }
-.community { border-top: 4px solid #e67e22; }
-
-/* サムネイル色 */
-.thumb-learning { background-color: #1f8eed; }
-.thumb-experiment { background-color: #2ecc71; }
-.thumb-community { background-color: #e67e22; }
-
-@media(max-width: 600px){
-    .card { height: auto; }
-    .description { -webkit-line-clamp: unset; }
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arkive Portal</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      color: white;
+      text-align: center;
+      padding: 50px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 30px;
+      margin: 20px auto;
+      max-width: 400px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+    button {
+      background-color: #ffffff;
+      color: #2a5298;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background-color: #f0f0f0;
+    }
+  </style>
 </head>
 <body>
+  <div class="card" id="login-card">
+    <h1>Welcome to Arkive</h1>
+    <p>ログインして世界観をひらこう</p>
+    <button onclick="login()">Googleでログイン</button>
+  </div>
 
-<h1>シェーダー学習リソース一覧</h1>
+  <div class="card" id="user-card" style="display: none;">
+    <h2 id="user-name"></h2>
+    <p id="user-email"></p>
+    <button onclick="logout()">ログアウト</button>
+  </div>
 
-<!-- 学習用 -->
-<h2>学習用</h2>
-<div class="card-container">
-<a href="https://thebookofshaders.com/" class="card-link" target="_blank">
-    <div class="card learning">
-        <div class="thumbnail thumb-learning"></div>
-        <div class="title">The Book of Shaders</div>
-        <div class="description">GLSLフラグメントシェーダー入門向けWebブック。ステップ・バイ・ステップで学べる。</div>
-    </div>
-</a>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
 
-<a href="https://webglfundamentals.org/webgl/lessons/webgl-shaders-and-glsl.html" class="card-link" target="_blank">
-    <div class="card learning">
-        <div class="thumbnail thumb-learning"></div>
-        <div class="title">WebGLFundamentals</div>
-        <div class="description">WebGLでの頂点・フラグメントシェーダーの基礎を解説。</div>
-    </div>
-</a>
-</div>
+  <script>
+    // Firebase設定（あなたのプロジェクトに合わせて書き換えてください）
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID"
+    };
 
-<!-- 実験用 -->
-<h2>実験用</h2>
-<div class="card-container">
-<a href="https://www.shadertoy.com/" class="card-link" target="_blank">
-    <div class="card experiment">
-        <div class="thumbnail thumb-experiment"></div>
-        <div class="title">ShaderToy</div>
-        <div class="description">ブラウザでフラグメントシェーダーを即時実行・共有できるコミュニティサイト。</div>
-    </div>
-</a>
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-<a href="https://smoothstep.io/" class="card-link" target="_blank">
-    <div class="card experiment">
-        <div class="thumbnail thumb-experiment"></div>
-        <div class="title">smoothstep.io</div>
-        <div class="description">シェーダー実験やサンプルをまとめたサイト。</div>
-    </div>
-</a>
+    // ログイン処理
+    function login() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).then(result => {
+        const user = result.user;
+        db.collection("users").doc(user.uid).set({
+          name: user.displayName,
+          email: user.email,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      });
+    }
 
-<a href="https://www.vertexshaderart.com/" class="card-link" target="_blank">
-    <div class="card experiment">
-        <div class="thumbnail thumb-experiment"></div>
-        <div class="title">vertexshaderart.com</div>
-        <div class="description">Sylvain LCによる頂点シェーダー作品やサンプル。</div>
-    </div>
-</a>
+    // ログアウト処理
+    function logout() {
+      auth.signOut();
+    }
 
-<a href="https://shaderoo.org/" class="card-link" target="_blank">
-    <div class="card experiment">
-        <div class="thumbnail thumb-experiment"></div>
-        <div class="title">shaderoo.org</div>
-        <div class="description">Sylvain LCのシェーダー実験／サンプル集。</div>
-    </div>
-</a>
-</div>
-
-<!-- コミュニティ -->
-<h2>コミュニティ</h2>
-<div class="card-container">
-<a href="https://catlikecoding.com/unity/tutorials/" class="card-link" target="_blank">
-    <div class="card community">
-        <div class="thumbnail thumb-community"></div>
-        <div class="title">Catlike Coding</div>
-        <div class="description">Unity向けにShaderLab/HLSLチュートリアルやレンダーパイプラインを提供。</div>
-    </div>
-</a>
-
-<a href="https://www.lighthouse3d.com/tutorials/glsl-tutorial/" class="card-link" target="_blank">
-    <div class="card community">
-        <div class="thumbnail thumb-community"></div>
-        <div class="title">Lighthouse3D GLSL Tutorial</div>
-        <div class="description">OpenGL＋GLSL背景向け。シェーダーパイプラインやシンタックスを丁寧に解説。</div>
-    </div>
-</a>
-
-<a href="https://realtimevfx.com/t/resources-for-learning-shader/2729/" class="card-link" target="_blank">
-    <div class="card community">
-        <div class="thumbnail thumb-community"></div>
-        <div class="title">RealtimeVFX フォーラム</div>
-        <div class="description">シェーダー学習リソースや経験談をコミュニティ形式で共有。</div>
-    </div>
-</a>
-</div>
-
+    // ログイン状態の監視
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById("login-card").style.display = "none";
+        document.getElementById("user-card").style.display = "block";
+        document.getElementById("user-name").textContent = `ようこそ、${user.displayName} さん`;
+        document.getElementById("user-email").textContent = user.email;
+      } else {
+        document.getElementById("login-card").style.display = "block";
+        document.getElementById("user-card").style.display = "none";
+      }
+    });
+  </script>
 </body>
 </html>

@@ -52,24 +52,38 @@
   </style>
 </head>
 <body>
-<div class="card" id="title-card">
-  <h1>Arkive Portal</h1>
-  <p>世界観の入り口へようこそ</p>
-  <a href="gallery.html">📁 ギャラリー</a>
-  <a href="docs.html">📚 ドキュメント</a>
-  <a href="about.html">🌐 このサイトについて</a>
-  <a href="palette.html">🎨 カラーパレット登録</a> <!-- ← 追加されたリンク -->
-  <div id="extra-links" style="display: none;">
-    <a href="dashboard.html">🧭 ダッシュボード（ログイン限定）</a>
-    <a href="settings.html">⚙️ ユーザー設定</a>
+  <div class="card" id="title-card">
+    <h1>Arkive Portal</h1>
+    <p>世界観の入り口へようこそ</p>
+    <a href="gallery.html">📁 ギャラリー</a>
+    <a href="docs.html">📚 ドキュメント</a>
+    <a href="about.html">🌐 このサイトについて</a>
+    <a href="palette.html">🎨 カラーパレット登録</a>
+    <div id="extra-links" style="display: none;">
+      <a href="dashboard.html">🧭 ダッシュボード（ログイン限定）</a>
+      <a href="settings.html">⚙️ ユーザー設定</a>
+    </div>
   </div>
-</div>
 
   <div class="card" id="login-card">
-    <input type="email" id="email" placeholder="メールアドレス" /><br />
-    <input type="password" id="password" placeholder="パスワード" /><br />
+    <input type="text" id="login-username" placeholder="ユーザー名" /><br />
+    <input type="password" id="login-password" placeholder="パスワード" /><br />
     <button onclick="login()">ログイン</button>
-    <button onclick="signup()">新規登録</button>
+    <p><a href="#" onclick="showSignup()">新規登録はこちら</a></p>
+  </div>
+
+  <div class="card" id="signup-card" style="display: none;">
+    <input type="text" id="signup-username" placeholder="ユーザー名（必須）" /><br />
+    <input type="email" id="signup-email" placeholder="メールアドレス" /><br />
+    <input type="password" id="signup-password" placeholder="パスワード" /><br />
+    <button onclick="signup()">登録する</button>
+    <p><a href="#" onclick="showLogin()">ログインに戻る</a></p>
+  </div>
+
+  <div class="card" id="username-card" style="display: none;">
+    <h2>ユーザー名を登録してください</h2>
+    <input type="text" id="new-username" placeholder="ユーザー名（必須）" /><br />
+    <button onclick="registerUsername()">登録する</button>
   </div>
 
   <div class="card" id="user-card" style="display: none;">
@@ -94,43 +108,124 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    function login() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      auth.signInWithEmailAndPassword(email, password)
-        .catch(error => alert("ログイン失敗: " + error.message));
+    function showSignup() {
+      document.getElementById("login-card").style.display = "none";
+      document.getElementById("signup-card").style.display = "block";
+    }
+
+    function showLogin() {
+      document.getElementById("signup-card").style.display = "none";
+      document.getElementById("login-card").style.display = "block";
     }
 
     function signup() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      auth.createUserWithEmailAndPassword(email, password)
+      const username = document.getElementById("signup-username").value.trim();
+      const email = document.getElementById("signup-email").value.trim();
+      const password = document.getElementById("signup-password").value;
+
+      if (!username || !email || !password) {
+        alert("すべての項目を入力してください");
+        return;
+      }
+
+      db.collection("users").where("username", "==", username).get()
+        .then(snapshot => {
+          if (!snapshot.empty) {
+            throw new Error("このユーザー名はすでに使われています");
+          }
+          return auth.createUserWithEmailAndPassword(email, password);
+        })
         .then(result => {
           const user = result.user;
-          db.collection("users").doc(user.uid).set({
-            email: user.email,
+          return db.collection("users").doc(user.uid).set({
+            username: username,
+            email: email,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         })
+        .then(() => {
+          alert("登録が完了しました！");
+          showLogin();
+        })
         .catch(error => alert("登録失敗: " + error.message));
+    }
+
+    function login() {
+      const username = document.getElementById("login-username").value.trim();
+      const password = document.getElementById("login-password").value;
+
+      if (!username || !password) {
+        alert("ユーザー名とパスワードを入力してください");
+        return;
+      }
+
+      db.collection("users").where("username", "==", username).limit(1).get()
+        .then(snapshot => {
+          if (snapshot.empty) {
+            throw new Error("ユーザー名が見つかりません");
+          }
+          const userData = snapshot.docs[0].data();
+          return auth.signInWithEmailAndPassword(userData.email, password);
+        })
+        .catch(error => alert("ログイン失敗: " + error.message));
     }
 
     function logout() {
       auth.signOut();
     }
 
+    function registerUsername() {
+      const username = document.getElementById("new-username").value.trim();
+      if (!username) {
+        alert("ユーザー名を入力してください");
+        return;
+      }
+
+      db.collection("users").where("username", "==", username).get()
+        .then(snapshot => {
+          if (!snapshot.empty) {
+            throw new Error("このユーザー名はすでに使われています");
+          }
+          const uid = auth.currentUser.uid;
+          return db.collection("users").doc(uid).update({ username: username });
+        })
+        .then(() => {
+          alert("ユーザー名を登録しました！");
+          document.getElementById("username-card").style.display = "none";
+          document.getElementById("user-name").textContent = `ようこそ、${username} さん`;
+        })
+        .catch(error => {
+          alert("登録に失敗しました: " + error.message);
+        });
+    }
+
     auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById("login-card").style.display = "none";
-        document.getElementById("user-card").style.display = "block";
+  if (user) {
+    document.getElementById("login-card").style.display = "none";
+    document.getElementById("signup-card").style.display = "none";
+    document.getElementById("user-card").style.display = "block";
+    document.getElementById("extra-links").style.display = "block";
+
+    db.collection("users").doc(user.uid).get().then(doc => {
+      const data = doc.data();
+      if (!data || !data.username) {
+        document.getElementById("username-card").style.display = "block";
+        document.getElementById("user-name").textContent = "ユーザー名未登録";
         document.getElementById("user-email").textContent = user.email;
-        document.getElementById("extra-links").style.display = "block";
       } else {
-        document.getElementById("login-card").style.display = "block";
-        document.getElementById("user-card").style.display = "none";
-        document.getElementById("extra-links").style.display = "none";
+        document.getElementById("username-card").style.display = "none";
+        document.getElementById("user-name").textContent = `ようこそ、${data.username} さん`;
+        document.getElementById("user-email").textContent = data.email;
       }
     });
-  </script>
+  } else {
+    document.getElementById("login-card").style.display = "block";
+    document.getElementById("signup-card").style.display = "none";
+    document.getElementById("user-card").style.display = "none";
+    document.getElementById("extra-links").style.display = "none";
+    document.getElementById("username-card").style.display = "none";
+  }
+});
+</script>
 </body>
 </html>

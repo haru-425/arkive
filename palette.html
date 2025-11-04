@@ -1,133 +1,121 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>カラーパレット一覧 | Arkive</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1e3c72, #2a5298);
-      color: white;
-      text-align: center;
-      padding: 50px;
-    }
-    .card {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 30px;
-      margin: 20px auto;
-      max-width: 600px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-    }
-    .palette {
-      margin: 10px 0;
-      padding: 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-    }
-    .color-box {
-      display: inline-block;
-      width: 30px;
-      height: 30px;
-      margin: 2px;
-      border-radius: 4px;
-    }
-    button {
-      background-color: #fff;
-      color: #2a5298;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-    button:hover {
-      background-color: #f0f0f0;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>統合パレット</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+
+  #palette-container {
+    max-width: 400px;
+    margin: auto;
+  }
+
+  #palette-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #palette-header h3 {
+    margin: 0;
+  }
+
+  #add-color-btn {
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+
+  #palette-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  #palette-list li {
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 5px;
+    user-select: none;
+  }
+
+  #palette-list li.selected {
+    outline: 3px solid #000;
+  }
+
+  #remove-btn {
+    margin-top: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 5px;
+  }
+</style>
 </head>
 <body>
-  <div class="card">
-    <h2>🧑‍🎨 あなたのパレット</h2>
-    <div id="my-palettes">読み込み中...</div>
+
+<div id="palette-container">
+  <div id="palette-header">
+    <h3>パレット</h3>
+    <button id="add-color-btn">追加</button>
   </div>
+  <ul id="palette-list">
+    <!-- 色アイテムがここに追加されます -->
+  </ul>
+  <button id="remove-btn">選択色を削除</button>
+</div>
 
-  <div class="card">
-    <h2>🌍 みんなのパレット</h2>
-    <div id="other-palettes">読み込み中...</div>
-  </div>
+<script>
+const paletteList = document.getElementById("palette-list");
+const addColorBtn = document.getElementById("add-color-btn");
+const removeBtn = document.getElementById("remove-btn");
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+let selectedItem = null;
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyA_TQT0dB04nbVhGsVVvQsxlIkQuy2hJIQ",
-      authDomain: "arkive-505f0.firebaseapp.com",
-      projectId: "arkive-505f0"
-    };
+// 色を追加
+addColorBtn.addEventListener("click", () => {
+  const color = prompt("色を入力（例: #ff0000）");
+  if (!color) return;
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  const li = document.createElement("li");
+  li.textContent = "";
+  li.style.backgroundColor = color;
 
-    let currentUser = null;
+  li.addEventListener("click", () => {
+    if (selectedItem) selectedItem.classList.remove("selected");
+    selectedItem = li;
+    li.classList.add("selected");
+  });
 
-    auth.onAuthStateChanged(user => {
-      currentUser = user;
-      loadPalettes();
-    });
+  paletteList.appendChild(li);
+});
 
-    function loadPalettes() {
-      db.collection("public_palettes").orderBy("createdAt", "desc").get().then(snapshot => {
-        const myList = [];
-        const otherList = [];
+// 選択色を削除
+removeBtn.addEventListener("click", () => {
+  if (!selectedItem) {
+    alert("削除する色を選択してください");
+    return;
+  }
+  paletteList.removeChild(selectedItem);
+  selectedItem = null;
+});
+</script>
 
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const id = doc.id;
-          const html = renderPalette(data.name, data.colors, data.tags, data.uid === currentUser?.uid ? id : null);
-
-          if (currentUser && data.uid === currentUser.uid) {
-            myList.push(html);
-            otherList.push(html);
-          } else {
-            otherList.push(html);
-          }
-        });
-
-        document.getElementById("my-palettes").innerHTML = myList.length ? myList.join("") : "（まだ登録されていません）";
-        document.getElementById("other-palettes").innerHTML = otherList.length ? otherList.join("") : "（まだ公開パレットがありません）";
-      });
-    }
-
-    function renderPalette(name, colors, tags, deletableId) {
-      let html = `<div class="palette"><strong>${name}</strong><br>`;
-      colors.forEach(color => {
-        html += `<span class="color-box" style="background:${color};"></span>`;
-      });
-      html += `<br><small>タグ: ${tags.join(", ")}</small>`;
-      if (deletableId) {
-        html += `<br><button onclick="deletePalette('${deletableId}')">🗑️ 削除</button>`;
-      }
-      html += `</div>`;
-      return html;
-    }
-
-    function deletePalette(paletteId) {
-      if (confirm("このパレットを削除しますか？")) {
-        db.collection("public_palettes").doc(paletteId).delete()
-          .then(() => {
-            alert("削除しました");
-            loadPalettes();
-          })
-          .catch(error => {
-            alert("削除に失敗しました: " + error.message);
-          });
-      }
-    }
-  </script>
 </body>
 </html>

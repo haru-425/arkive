@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ユーザー設定 | Arkive</title>
+  <link rel="stylesheet" href="settings.css" />
+</head>
+<body>
+  <div class="card">
+    <h1>⚙️ ユーザー設定</h1>
+    <p id="status">ログイン状態を確認中...</p>
+
+    <div id="settings-form" style="display: none;">
+      <h2>📝 ユーザー名変更</h2>
+      <input type="text" id="new-username" placeholder="新しいユーザー名" />
+      <button onclick="updateUsername()">変更する</button>
+
+      <h2>📧 メールアドレス変更</h2>
+      <input type="email" id="new-email" placeholder="新しいメールアドレス" />
+      <button onclick="updateEmail()">変更する</button>
+
+      <h2>🔒 パスワード変更</h2>
+      <input type="password" id="new-password" placeholder="新しいパスワード" />
+      <button onclick="updatePassword()">変更する</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+
+  <script src="settings.js"></script>
+</body>
+</html>

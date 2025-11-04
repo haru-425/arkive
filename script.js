@@ -109,4 +109,23 @@ auth.onAuthStateChanged(user => {
     document.getElementById("user-card").style.display = "block";
     document.getElementById("extra-links").style.display = "block";
 
-    db.collection("users").doc(user.uid).get().
+    db.collection("users").doc(user.uid).get().then(doc => {
+      const data = doc.data();
+      if (!data || !data.username) {
+        document.getElementById("username-card").style.display = "block";
+        document.getElementById("user-name").textContent = "ユーザー名未登録";
+        document.getElementById("user-email").textContent = user.email;
+      } else {
+        document.getElementById("username-card").style.display = "none";
+        document.getElementById("user-name").textContent = `ようこそ、${data.username} さん`;
+        document.getElementById("user-email").textContent = data.email;
+      }
+    });
+  } else {
+    document.getElementById("login-card").style.display = "block";
+    document.getElementById("signup-card").style.display = "none";
+    document.getElementById("user-card").style.display = "none";
+    document.getElementById("extra-links").style.display = "none";
+    document.getElementById("username-card").style.display = "none";
+  }
+}); // ← これが抜けているとエラーになります

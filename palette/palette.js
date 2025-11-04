@@ -125,4 +125,24 @@ async function loadPalettes() {
   const myList = [];
   const otherList = [];
 
-  for (const doc of snapshot.docs
+  for (const doc of snapshot.docs) {
+    const data = doc.data();
+    const id = doc.id;
+    const username = await getUsernameByUid(data.uid);
+
+    if (nameQuery && !data.name.toLowerCase().includes(nameQuery)) continue;
+
+    const isFavorited = favoriteIds.includes(id);
+    const html = renderPalette(data.name, data.colors, data.tags, username, id, isFavorited, data.uid === currentUser?.uid);
+
+    if (currentUser && data.uid === currentUser.uid) {
+      myList.push(html);
+      otherList.push(html);
+    } else {
+      otherList.push(html);
+    }
+  }
+
+  document.getElementById("my-palettes").innerHTML = myList.length ? myList.join("") : "（まだ登録されていません）";
+  document.getElementById("other-palettes").innerHTML = otherList.length ? otherList.join("") : "（まだ公開パレットがありません）";
+}
